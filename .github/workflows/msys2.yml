@@ -1,0 +1,29 @@
+name: build
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  msys2-ucrt64:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: false
+          install: mingw-w64-ucrt-x86_64-python mingw-w64-ucrt-x86_64-python-pip mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-meson bison flex
+      - name: Build
+        run: |
+          pip install Mako
+          meson setup build
+          cd build
+          meson compile
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: uam.exe
+          path: build/uam.exe
